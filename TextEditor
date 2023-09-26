@@ -1,0 +1,134 @@
+import tkinter as tk
+from tkinter import filedialog, messagebox
+import os
+
+# Initialize the main Tkinter window
+root = tk.Tk()
+root.title("Untitled - Notepad")
+root.geometry('800x500')
+root.resizable(0, 0)
+
+# Allow the text area to expand and fill the available space
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+# Text Area
+text_area = tk.Text(root, wrap=tk.WORD)
+text_area.grid(row=0, column=0, sticky="nsew")
+
+# Scrollbar
+scrollbar = tk.Scrollbar(root, command=text_area.yview)
+scrollbar.grid(row=0, column=1, sticky="ns")
+text_area.config(yscrollcommand=scrollbar.set)
+# Function to open a file and load its content into the text area
+def open_file():
+    # Ask the user to select a file
+    file_path = filedialog.askopenfilename(defaultextension='.txt', filetypes=[('All Files', '*.*'), ("Text File", "*.txt*")])
+
+    if file_path:
+        # Set the window title to the selected file's name
+        root.title(f"{os.path.basename(file_path)} - Notepad")
+        # Clear the text area
+        text_area.delete("1.0", tk.END)
+        # Read the content from the file and insert it into the text area
+        with open(file_path, "r") as file:
+            text_area.insert(tk.END, file.read())
+
+# Function to create a new empty file
+def open_new_file():
+    # Set the window title to "Untitled - Notepad"
+    root.title("Untitled - Notepad")
+    # Clear the text area
+    text_area.delete("1.0", tk.END)
+
+# Function to save the content of the text area to a file
+def save_file():
+    # Get the content from the text area
+    file_content = text_area.get("1.0", tk.END)
+    if file_content == '':
+        # If there is no content, set file_path to None
+        file_path = None
+    else:
+        # If there is content, open a file and write the content into it
+        file_path = filedialog.asksaveasfilename(initialfile='Untitled.txt', defaultextension='.txt',
+                                                filetypes=[("Text File", "*.txt*"), ("Word Document", '*.docx'), ("PDF", "*.pdf*")])
+        if file_path:
+            with open(file_path, "w") as file:
+                file.write(file_content)
+        root.title(f"{os.path.basename(file_path)} - Notepad")
+# Function to close the application
+def exit_application():
+    # Ask the user if they want to quit the application
+    if messagebox.askokcancel("Quit", "Do you want to quit Notepad?"):
+        root.destroy()
+
+# Function to copy selected text to the clipboard
+def copy_text():
+    text_area.event_generate("<<Copy>>")
+
+# Function to cut selected text and remove it from the text area
+def cut_text():
+    text_area.event_generate("<<Cut>>")
+
+# Function to paste text from the clipboard to the text area
+def paste_text():
+    text_area.event_generate("<<Paste>>")
+
+# Function to select all the text in the text area
+def select_all():
+    text_area.tag_add(tk.SEL, "1.0", tk.END)
+
+# Function to delete the last character in the text area
+def delete_last_char():
+    text_area.event_generate("<Delete>")
+# Function to show information about Notepad
+def about_notepad():
+    messagebox.showinfo("About Notepad", "This is just another Notepad, but this is better than all others")
+
+# Function to show information about the available commands
+def about_commands():
+    commands = """
+Under the File Menu:
+- 'New' clears the entire Text Area
+- 'Open' clears text and opens another file
+- 'Save As' saves your file in the same / another extension
+
+Under the Edit Menu:
+- 'Copy' copies the selected text to your clipboard
+- 'Cut' cuts the selected text and removes it from the text area
+- 'Paste' pastes the copied/cut text
+- 'Select All' selects the entire text
+- 'Delete' deletes the last character 
+"""
+
+    messagebox.showinfo(title="All commands", message=commands, width=60, height=10)
+# Menu Bar
+menu_bar = tk.Menu(root)
+root.config(menu=menu_bar)
+
+# File Menu
+file_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="File", menu=file_menu)
+file_menu.add_command(label="New", command=open_new_file)
+file_menu.add_command(label="Open", command=open_file)
+file_menu.add_command(label="Save As", command=save_file)
+file_menu.add_separator()
+file_menu.add_command(label="Exit", command=exit_application)
+
+# Edit Menu
+edit_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Edit", menu=edit_menu)
+edit_menu.add_command(label="Copy", command=copy_text)
+edit_menu.add_command(label="Cut", command=cut_text)
+edit_menu.add_command(label="Paste", command=paste_text)
+edit_menu.add_separator()
+edit_menu.add_command(label="Select All", command=select_all)
+edit_menu.add_command(label="Delete", command=delete_last_char)
+
+# Help Menu
+help_menu = tk.Menu(menu_bar, tearoff=0)
+menu_bar.add_cascade(label="Help", menu=help_menu)
+help_menu.add_command(label="About Notepad", command=about_notepad)
+help_menu.add_command(label="Commands", command=about_commands)
+# Start the main event loop
+root.mainloop()
